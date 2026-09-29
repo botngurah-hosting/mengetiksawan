@@ -3,1248 +3,754 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Contest - Lomba Mengetik Online</title>
+    <title>Lomba Mengetik SDN 2 Sawan - Realtime Multiplayer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --bg-card-hover: #334155;
-            --primary: #06b6d4;
-            --primary-glow: rgba(6, 182, 212, 0.4);
-            --secondary: #8b5cf6;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --accent-amber: #f59e0b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@600&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
 
         body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
         }
 
-        header {
-            background: rgba(30, 41, 59, 0.8);
+        .cyber-font {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .title-font {
+            font-family: 'Teko', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        /* Glassmorphism card */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.85);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 40;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        .brand-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 800;
+        /* Teks Mengetik Wrapping Fix */
+        .text-display-box {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            max-height: 220px;
+            overflow-y: auto;
+            line-height: 1.8;
             font-size: 1.25rem;
-            letter-spacing: -0.025em;
-            color: #fff;
+            user-select: none;
         }
 
-        .brand-badge {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #fff;
-            padding: 0.25rem 0.6rem;
-            border-radius: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
+        /* Style Karakter Ketik */
+        .char {
+            position: relative;
+            transition: all 0.05s ease;
+            border-radius: 2px;
+            padding: 1px 0;
         }
-
-        .status-pill {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(15, 23, 42, 0.6);
-            padding: 0.4rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            border: 1px solid var(--border);
+        .char.correct {
+            color: #10b981;
+            background-color: rgba(16, 185, 129, 0.15);
         }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--accent-green);
-            box-shadow: 0 0 8px var(--accent-green);
-            animation: pulse 2s infinite;
+        .char.incorrect {
+            color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.3);
+            text-decoration: underline;
+        }
+        .char.current {
+            background-color: #3b82f6;
+            color: #ffffff;
+            animation: pulse 1s infinite;
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
 
-        .btn-admin {
-            background: var(--bg-card-hover);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-
-        .btn-admin:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 4px;
         }
-
-        main {
-            flex: 1;
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-            margin-bottom: 1.5rem;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .view-section {
-            display: none;
-            animation: fadeIn 0.3s ease-in-out forwards;
-        }
-
-        .view-section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), #0284c7);
-            color: white;
-            border: none;
-            padding: 0.85rem 1.75rem;
-            border-radius: 0.75rem;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            box-shadow: 0 4px 14px var(--primary-glow);
-            transition: all 0.2s ease;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--primary-glow);
-            filter: brightness(1.1);
-        }
-
-        .btn-secondary {
-            background: var(--bg-card-hover);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-secondary:hover {
-            background: #475569;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        .form-input {
-            width: 100%;
-            background: #0f172a;
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            padding: 0.85rem 1rem;
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s ease;
-        }
-
-        .form-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .stat-card {
-            background: #0f172a;
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.875rem;
-            font-weight: 800;
-            color: var(--primary);
-            line-height: 1.2;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-top: 0.25rem;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background: #0f172a;
-            border-radius: 9999px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transition: width 0.3s linear;
-        }
-
-        .typing-box {
-            background: #090d16;
-            border: 2px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 1.25rem;
-            line-height: 1.8;
-            letter-spacing: 0.05em;
-            position: relative;
-            min-height: 160px;
-            user-select: none;
-            margin-bottom: 1rem;
-            cursor: pointer;
-        }
-
-        .char-pending { color: #475569; }
-        .char-correct { color: var(--accent-green); text-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
-        .char-wrong { color: #ffffff; background-color: var(--accent-red); border-radius: 2px; }
-        .char-current { 
-            color: #ffffff; 
-            background-color: rgba(6, 182, 212, 0.4); 
-            border-bottom: 3px solid var(--primary);
-            animation: cursorBlink 1s infinite;
-        }
-
-        @keyframes cursorBlink {
-            0%, 100% { border-bottom-color: var(--primary); }
-            50% { border-bottom-color: transparent; }
-        }
-
-        #hidden-input {
-            position: absolute;
-            opacity: 0;
-            left: -9999px;
-        }
-
-        .overlay-countdown {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-
-        .overlay-countdown.active {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .countdown-number {
-            font-size: 8rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: zoomPulse 1s infinite alternate;
-        }
-
-        @keyframes zoomPulse {
-            from { transform: scale(0.8); opacity: 0.7; }
-            to { transform: scale(1.1); opacity: 1; }
-        }
-
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .leaderboard-table th, .leaderboard-table td {
-            padding: 0.85rem 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .leaderboard-table th {
-            background: #0f172a;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        .leaderboard-table tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .rank-badge {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 800;
-            font-size: 0.85rem;
-        }
-
-        .rank-1 { background: #f59e0b; color: #000; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
-        .rank-2 { background: #94a3b8; color: #000; }
-        .rank-3 { background: #b45309; color: #fff; }
-        .rank-other { background: var(--bg-card-hover); color: var(--text-muted); }
-
-        /* Modal Admin */
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(8px);
-            z-index: 50;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-
-        .modal.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            width: 100%;
-            max-width: 650px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 1.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .close-btn:hover { color: #fff; }
-
-        .toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            color: #fff;
-            padding: 0.85rem 1.25rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-            z-index: 200;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        #confetti-canvas {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 90;
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 flex flex-col justify-between min-h-screen">
 
-    <header>
-        <div class="brand-title">
-            <span>⌨️ CYBERTYPE</span>
-            <span class="brand-badge">PRO CONTEST</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <div class="status-pill">
-                <div class="pulse-dot" id="status-dot"></div>
-                <span id="status-text">Terhubung</span>
+    <!-- HEADER / NAVBAR -->
+    <header class="border-b border-slate-800 bg-slate-900/90 px-4 py-3 sticky top-0 z-50 backdrop-blur">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="goHome()">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-blue-500/30">
+                    ⌨️
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-wide text-white title-font uppercase">SDN 2 SAWAN</h1>
+                    <p class="text-xs text-blue-400 cyber-font">Lomba Mengetik Cepat Online</p>
+                </div>
             </div>
-            <button class="btn-admin" onclick="openAdminModal()">⚙️ Panitia / Admin</button>
+
+            <div class="flex items-center gap-3">
+                <span id="gasStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Terhubung GAS
+                </span>
+                <button id="btnAdminNav" onclick="showAdminModal()" class="px-3 py-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+                    <i class="fa-solid fa-user-shield mr-1"></i> Admin
+                </button>
+            </div>
         </div>
     </header>
 
-    <canvas id="confetti-canvas"></canvas>
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-5xl mx-auto w-full px-4 py-6 flex-grow flex flex-col justify-center">
 
-    <div class="overlay-countdown" id="countdown-overlay">
-        <div style="text-align: center;">
-            <div style="color: var(--text-muted); font-size: 1.25rem; margin-bottom: 1rem; font-weight: 600;">LOMBA DIMULAI DALAM</div>
-            <div class="countdown-number" id="countdown-val">3</div>
-            <div style="color: var(--primary); font-size: 1.1rem; margin-top: 1rem;" id="countdown-subtext">Bersiap di keyboard Anda!</div>
-        </div>
-    </div>
+        <!-- VIEW 1: REGISTRASI SISWA / USER -->
+        <section id="viewRegister" class="max-w-md mx-auto w-full">
+            <div class="glass-panel rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl">
+                <div class="text-center mb-6">
+                    <span class="text-4xl mb-2 inline-block">🚀</span>
+                    <h2 class="text-2xl font-bold text-white">Masuk Lomba Mengetik</h2>
+                    <p class="text-slate-400 text-sm mt-1">Isi data diri kamu untuk bergabung ke arena!</p>
+                </div>
 
-    <main>
-        <!-- VIEW 1: REGISTRASI PESERTA -->
-        <section id="view-register" class="view-section card active">
-            <div style="text-align: center; margin-bottom: 1.5rem;">
-                <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem;">Registrasi Lomba Mengetik</h1>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Masukkan identitas diri Anda untuk bergabung ke arena lomba real-time.</p>
+                <form onsubmit="registerStudent(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Nama Lengkap Siswa</label>
+                        <input type="text" id="inputStudentName" required placeholder="Contoh: Budi Santoso" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Kelas / NIS</label>
+                        <input type="text" id="inputStudentClass" required placeholder="Contoh: Kelas 5A / 1234" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/30 transition duration-200">
+                        Masuk Ruang Tunggu <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </form>
             </div>
-            <form onsubmit="handleRegister(event)">
-                <div class="form-group">
-                    <label class="form-label" for="student-name">Nama Lengkap Peserta</label>
-                    <input type="text" id="student-name" class="form-input" placeholder="Contoh: Budi Santoso" required autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="student-nis">Kelas / NIS / Nomor Ujian</label>
-                    <input type="text" id="student-nis" class="form-input" placeholder="Contoh: Kelas 5A / 1024" required autocomplete="off">
-                </div>
-                <button type="submit" class="btn-primary" style="margin-top: 1rem;">
-                    <span>Masuk Ruang Tunggu Lomba</span> ➔
-                </button>
-            </form>
         </section>
 
-        <!-- VIEW 2: RUANG TUNGGU / LOBBY -->
-        <section id="view-lobby" class="view-section card">
-            <div style="text-align: center; padding: 2rem 1rem;">
-                <div style="font-size: 3.5rem; margin-bottom: 1rem; animation: pulse 1.5s infinite;">⏳</div>
-                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Menunggu Panitia Memulai Lomba</h2>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Halo <b id="lobby-player-name" style="color: var(--primary);">Peserta</b>! Anda sudah terdaftar di ruang tunggu. Layar akan otomatis memulai lomba secara serentak.</p>
+        <!-- VIEW 2: RUANG TUNGGU SISWA (LOBBY) -->
+        <section id="viewLobby" class="hidden max-w-lg mx-auto w-full text-center">
+            <div class="glass-panel rounded-2xl p-8 border border-slate-800">
+                <div class="inline-block p-4 bg-blue-500/10 rounded-full mb-4">
+                    <i class="fa-solid fa-clock text-4xl text-blue-400 animate-pulse"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Ruang Tunggu Peserta</h2>
+                <p class="text-slate-400 text-sm mt-2">Halo, <span id="lobbyStudentName" class="text-blue-400 font-bold"></span>!</p>
                 
-                <div style="background: #0f172a; padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--border); max-width: 400px; margin: 0 auto;">
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">STATUS RUANGAN</div>
-                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-amber); margin-top: 0.25rem;" id="lobby-status-label">Standby / Menunggu Broadcast</div>
+                <div class="my-6 bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-left space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Status Lomba:</span>
+                        <span id="lobbyStatusBadge" class="text-amber-400 font-bold">MENUNGGU PANITIA</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Durasi Mengetik:</span>
+                        <span id="lobbyDuration" class="text-white font-bold">60 Detik</span>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-500 animate-pulse">
+                    Harap bersiap di papan ketik. Lomba akan dimulai begitu Admin menekan tombol <strong class="text-slate-300">"Mulai Lomba"</strong>.
+                </p>
+            </div>
+        </section>
+
+        <!-- VIEW 3: HITUNGAN MUNDUR (COUNTDOWN) -->
+        <section id="viewCountdown" class="hidden text-center">
+            <div class="glass-panel rounded-2xl p-12 max-w-sm mx-auto">
+                <p class="text-slate-400 uppercase text-xs font-bold tracking-widest mb-2">Bersiap-siap...</p>
+                <div id="countdownNumber" class="text-8xl font-black text-blue-500 title-font animate-bounce">
+                    3
                 </div>
             </div>
         </section>
 
-        <!-- VIEW 3: ARENA LOMBA MENGETIK -->
-        <section id="view-arena" class="view-section card">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-wpm">0</div>
-                    <div class="stat-label">WPM (Kecepatan)</div>
+        <!-- VIEW 4: ARENA MENGETIK SISWA -->
+        <section id="viewArena" class="hidden space-y-4">
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-3 gap-3 md:gap-4">
+                <div class="glass-panel rounded-xl p-3 md:p-4 text-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Waktu Sisa</span>
+                    <span id="timerDisplay" class="text-2xl md:text-3xl font-extrabold text-amber-400 cyber-font">60s</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--accent-green);" id="stat-accuracy">100%</div>
-                    <div class="stat-label">Akurasi</div>
+                <div class="glass-panel rounded-xl p-3 md:p-4 text-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Kecepatan</span>
+                    <span id="wpmDisplay" class="text-2xl md:text-3xl font-extrabold text-blue-400 cyber-font">0 <xs class="text-xs font-normal">WPM</xs></span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--secondary);" id="stat-time">60s</div>
-                    <div class="stat-label">Sisa Waktu</div>
+                <div class="glass-panel rounded-xl p-3 md:p-4 text-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Akurasi</span>
+                    <span id="accuracyDisplay" class="text-2xl md:text-3xl font-extrabold text-emerald-400 cyber-font">100%</span>
                 </div>
             </div>
 
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="time-progress"></div>
-            </div>
+            <!-- Typing Area Wrapper -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                <!-- Teks Panduan yang Harus Diketik (Fix overflow & wrap) -->
+                <div id="textContainer" class="text-display-box bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-slate-400 cyber-font select-none">
+                    <!-- Dynamic chars inserted here -->
+                </div>
 
-            <div class="typing-box" id="typing-display" onclick="focusTypingInput()">
-                <!-- Text characters rendered via JS -->
-            </div>
-            <input type="text" id="hidden-input" autocomplete="off" spellcheck="false">
-
-            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 0.85rem;">
-                <span>💡 Klik area kotak teks di atas jika ketikan tidak merespon.</span>
-                <span id="char-counter">0 / 0 Karakter</span>
+                <!-- Input Field Realtime -->
+                <div>
+                    <input type="text" id="typingInput" autocomplete="off" placeholder="Mulai mengetik di sini..."
+                        class="w-full bg-slate-900 border-2 border-blue-500/50 focus:border-blue-400 rounded-xl px-4 py-3.5 text-white cyber-font text-lg focus:outline-none transition shadow-lg shadow-blue-500/10">
+                </div>
             </div>
         </section>
 
-        <!-- VIEW 4: HASIL & LEADERBOARD -->
-        <section id="view-results" class="view-section card">
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
-                <h2 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.25rem;">Lomba Selesai!</h2>
-                <p style="color: var(--text-muted);">Skor Anda telah berhasil dikirim dan tersimpan di Google Sheets Panitia.</p>
-            </div>
-
-            <div class="stats-grid" style="margin-bottom: 2rem;">
-                <div class="stat-card" style="border-color: var(--primary);">
-                    <div class="stat-value" id="res-wpm">0</div>
-                    <div class="stat-label">WPM Akhir</div>
+        <!-- VIEW 5: HASIL SELESAI SISWA -->
+        <section id="viewResult" class="hidden max-w-md mx-auto w-full text-center">
+            <div class="glass-panel rounded-2xl p-8 border border-slate-800 space-y-6">
+                <div>
+                    <span class="text-5xl">🏆</span>
+                    <h2 class="text-3xl font-extrabold text-white title-font uppercase mt-2">Lomba Selesai!</h2>
+                    <p class="text-xs text-slate-400">Skor Anda telah berhasil dikirim ke server.</p>
                 </div>
-                <div class="stat-card" style="border-color: var(--accent-green);">
-                    <div class="stat-value" style="color: var(--accent-green);" id="res-acc">0%</div>
-                    <div class="stat-label">Akurasi Kebenaran</div>
+
+                <div class="grid grid-cols-3 gap-2 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                    <div>
+                        <span class="text-xs text-slate-400 block">WPM</span>
+                        <span id="resWpm" class="text-xl font-bold text-blue-400 cyber-font">0</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block">Akurasi</span>
+                        <span id="resAcc" class="text-xl font-bold text-emerald-400 cyber-font">0%</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block">Waktu</span>
+                        <span id="resTime" class="text-xl font-bold text-amber-400 cyber-font">0s</span>
+                    </div>
                 </div>
-                <div class="stat-card" style="border-color: var(--secondary);">
-                    <div class="stat-value" style="color: var(--secondary);" id="res-time">0s</div>
-                    <div class="stat-label">Waktu Tempuh</div>
-                </div>
-            </div>
 
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>🏆 Papan Peringkat Real-Time</span>
-                <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-muted);">(Otomatis diperbarui)</span>
-            </h3>
-
-            <div style="overflow-x: auto;">
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>Pos</th>
-                            <th>Nama Peserta</th>
-                            <th>Kelas / NIS</th>
-                            <th>WPM</th>
-                            <th>Akurasi</th>
-                            <th>Waktu</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body">
-                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Memuat data peringkat...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div style="margin-top: 1.5rem; text-align: center;">
-                <button class="btn-secondary" onclick="resetToRegister()">Kembali ke Halaman Depan</button>
+                <button onclick="loadLeaderboardView()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition">
+                    Lihat Papan Peringkat <i class="fa-solid fa-trophy ml-1"></i>
+                </button>
             </div>
         </section>
+
+        <!-- VIEW 6: PANEL ADMIN & LIVE MONITOR (Terpisah dari area lomba) -->
+        <section id="viewAdmin" class="hidden space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-white title-font uppercase">PANEL KONTROL PANITIA</h2>
+                    <p class="text-xs text-slate-400">Kelola teks lomba dan pantau peringkat siswa secara live.</p>
+                </div>
+                <button onclick="logoutAdmin()" class="text-xs text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg border border-red-500/20">
+                    Keluar Admin
+                </button>
+            </div>
+
+            <!-- Form Pengaturan Lomba -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="glass-panel rounded-xl p-5 border border-slate-800 space-y-4">
+                    <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider"><i class="fa-solid fa-gear mr-1"></i> Pengaturan Lomba</h3>
+                    
+                    <div>
+                        <label class="block text-xs text-slate-300 font-bold mb-1">Durasi Waktu (Detik)</label>
+                        <input type="number" id="adminDuration" value="60" min="10" max="300" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-300 font-bold mb-1">Teks Lomba Mengetik</label>
+                        <textarea id="adminText" rows="5" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-slate-200 cyber-font focus:outline-none">Pancasila adalah pilar ideologis negara Indonesia. Nama ini terdiri dari dua kata dari Sanskerta: pañca berarti lima dan śīla berarti prinsip atau asas.</textarea>
+                    </div>
+
+                    <button onclick="saveAdminSettings()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 text-xs rounded-lg border border-slate-700 transition">
+                        Simpan Pengaturan Soal
+                    </button>
+
+                    <hr class="border-slate-800">
+
+                    <!-- Tombol Broadcast Mulai -->
+                    <button onclick="broadcastStart()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> MULAI LOMBA BERSAMAAN
+                    </button>
+                    <p class="text-[10px] text-slate-500 text-center">Menekan tombol ini akan memicu hitungan mundur di layar SELURUH SISWA secara serentak.</p>
+                </div>
+
+                <!-- Live Leaderboard Display untuk Panitia -->
+                <div class="lg:col-span-2 glass-panel rounded-xl p-5 border border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider"><i class="fa-solid fa-trophy mr-1"></i> Live Leaderboard</h3>
+                        <button onclick="fetchScores()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh Data</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-2.5">Pos</th>
+                                    <th class="p-2.5">Nama Siswa</th>
+                                    <th class="p-2.5">Kelas</th>
+                                    <th class="p-2.5 text-center">WPM</th>
+                                    <th class="p-2.5 text-center">Akurasi</th>
+                                    <th class="p-2.5 text-center">Waktu</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLeaderboardTable" class="divide-y divide-slate-800/50">
+                                <tr><td colspan="6" class="text-center py-4 text-slate-500">Memuat data peringkat...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 7: LEADERBOARD UMUM SISWA -->
+        <section id="viewLeaderboard" class="hidden max-w-2xl mx-auto w-full space-y-4">
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-extrabold text-white title-font uppercase">PAPAN PERINGKAT LOMBA</h2>
+                    <p class="text-xs text-slate-400">Hasil nilai tercepat & terakurat peserta SDN 2 Sawan</p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
+                            <tr>
+                                <th class="p-3">Rank</th>
+                                <th class="p-3">Nama</th>
+                                <th class="p-3">Kelas</th>
+                                <th class="p-3 text-center">WPM</th>
+                                <th class="p-3 text-center">Akurasi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="publicLeaderboardTable" class="divide-y divide-slate-800">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <button onclick="goHome()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 rounded-xl border border-slate-700">
+                        Kembali ke Halaman Utama
+                    </button>
+                </div>
+            </div>
+        </section>
+
     </main>
 
-    <div class="modal" id="admin-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 style="font-size: 1.25rem; font-weight: 700;" id="admin-modal-title">Panel Kontrol Panitia Lomba</h3>
-                <button class="close-btn" onclick="closeAdminModal()">✕</button>
+    <!-- MODAL LOGIN ADMIN -->
+    <div id="modalAdmin" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="glass-panel max-w-sm w-full rounded-2xl p-6 border border-slate-700 space-y-4">
+            <h3 class="text-lg font-bold text-white text-center">Masuk Mode Admin</h3>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">PIN Keamanan Admin</label>
+                <input type="password" id="inputAdminPin" placeholder="Masukkan PIN" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none">
             </div>
-
-            <!-- PIN AUTH FORM -->
-            <div id="admin-auth-sec">
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Masukkan PIN Keamanan untuk membuka Panel Admin Panitia (Default PIN: <b>admin123</b>).</p>
-                <div class="form-group">
-                    <input type="password" id="admin-pin" class="form-input" placeholder="Masukkan PIN Admin" autocomplete="off">
-                </div>
-                <button class="btn-primary" onclick="verifyAdminPin()">Verifikasi Access PIN</button>
-            </div>
-
-            <!-- ADMIN CONTROLS (Hidden until PIN verified) -->
-            <div id="admin-panel-sec" style="display: none;">
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
-                    <button class="btn-secondary" style="font-size: 0.85rem;" onclick="switchAdminTab('control')">🚀 Kontrol Lomba</button>
-                    <button class="btn-secondary" style="font-size: 0.85rem;" onclick="switchAdminTab('data')">📊 Data & Spreadsheet</button>
-                    <button class="btn-secondary" style="font-size: 0.85rem;" onclick="switchAdminTab('config')">⚙️ URL Endpoint</button>
-                </div>
-
-                <!-- TAB 1: KONTROL LOMBA -->
-                <div id="tab-admin-control">
-                    <div class="form-group">
-                        <label class="form-label">Pilih Preset Teks Lomba</label>
-                        <select id="preset-select" class="form-input" onchange="applyTextPreset(this.value)">
-                            <option value="pancasila">Pancasila (Standar)</option>
-                            <option value="sumpah_pemuda">Sumpah Pemuda</option>
-                            <option value="proklamasi">Teks Proklamasi Kemerdekaan</option>
-                            <option value="custom">-- Teks Custom (Ketik Sendiri) --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Teks Paragraf Soal Mengetik</label>
-                        <textarea id="admin-contest-text" class="form-input" rows="4" style="resize: vertical;"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Durasi Waktu Lomba (Detik)</label>
-                        <input type="number" id="admin-duration" class="form-input" value="60" min="10" max="300">
-                    </div>
-
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <button class="btn-primary" style="background: linear-gradient(135deg, var(--accent-green), #059669);" onclick="broadcastStartContest()">
-                            🚀 MULAI LOMBA BERSAMAAN
-                        </button>
-                        <button class="btn-secondary" style="color: var(--accent-red);" onclick="broadcastResetContest()">
-                            ⏸ RESET / STOP LOMBA
-                        </button>
-                    </div>
-                </div>
-
-                <!-- TAB 2: DATA -->
-                <div id="tab-admin-data" style="display: none;">
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Data hasil lomba secara otomatis tersimpan di Google Sheets milik Anda.</p>
-                    <button class="btn-primary" style="margin-bottom: 1rem;" onclick="fetchLeaderboardData()">🔄 Refresh Data Skor</button>
-                    <button class="btn-secondary" style="width: 100%; margin-bottom: 1rem;" onclick="exportToCSV()">📥 Export Hasil ke CSV (Excel)</button>
-                </div>
-
-                <!-- TAB 3: CONFIG -->
-                <div id="tab-admin-config" style="display: none;">
-                    <div class="form-group">
-                        <label class="form-label">Google Apps Script Web App URL</label>
-                        <input type="text" id="gas-url-input" class="form-input" style="font-size: 0.8rem;">
-                    </div>
-                    <button class="btn-primary" onclick="saveGasUrlConfig()">Simpan & Tes Koneksi GAS</button>
-                </div>
+            <div class="flex gap-2">
+                <button onclick="closeAdminModal()" class="w-1/2 bg-slate-800 text-slate-300 text-xs py-2.5 rounded-xl">Batal</button>
+                <button onclick="verifyAdminPin()" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded-xl">Masuk</button>
             </div>
         </div>
     </div>
 
-    <div class="toast" id="toast-msg">Notifikasi</div>
-
+    <!-- SCRIPT UTAMA -->
     <script>
-        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbx8cg40YU6vjre_tCsaZ1pbfAGEb6ZBK0YNH4awJ1LUF_m_Zj6fKYiHaX4ag78tQNI7/exec";
-        
-        let gasWebUrl = localStorage.getItem("CYBERTYPE_GAS_URL") || DEFAULT_GAS_URL;
-        let participant = { name: "", nis: "" };
-        
-        let contestState = {
-            status: "waiting",
-            text: "Pancasila. Satu, Ketuhanan Yang Maha Esa. Dua, Kemanusiaan yang adil dan beradab. Tiga, Persatuan Indonesia.",
-            duration: 60,
-            startTime: 0
-        };
+        // URL Google Apps Script milik Anda
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx8cg40YU6vjre_tCsaZ1pbfAGEb6ZBK0YNH4awJ1LUF_m_Zj6fKYiHaX4ag78tQNI7/exec";
 
-        let typingSession = {
-            active: false,
-            startTime: null,
-            timerInterval: null,
-            timeLeft: 60,
-            typedIndex: 0,
-            mistakes: 0,
-            totalTyped: 0
-        };
-
-        let audioCtx = null;
+        // Global State
+        let currentUser = null;
+        let isAdmin = false;
+        let roomState = { status: 'waiting', duration: 60, text: '', startTime: 0 };
+        let timerInterval = null;
         let pollingInterval = null;
-        let lastHandledStartTime = 0;
+        
+        // Typing Variables
+        let targetText = "Pancasila adalah pilar ideologis negara Indonesia.";
+        let currentTextIndex = 0;
+        let timeRemaining = 60;
+        let startTime = null;
+        let isTypingActive = false;
+        let totalTypedChars = 0;
+        let correctTypedChars = 0;
 
-        // Preset Soal Mengetik
-        const TEXT_PRESETS = {
-            pancasila: "Pancasila. Satu, Ketuhanan Yang Maha Esa. Dua, Kemanusiaan yang adil dan beradab. Tiga, Persatuan Indonesia. Empat, Kerakyatan yang dipimpin oleh hikmat kebijaksanaan dalam permusyawaratan/perwakilan. Lima, Keadilan sosial bagi seluruh rakyat Indonesia.",
-            sumpah_pemuda: "Kami putra dan putri Indonesia, mengaku bertumpah darah yang satu, tanah Indonesia. Kami putra dan putri Indonesia mengaku berbangsa yang satu, bangsa Indonesia. Kami putra dan putri Indonesia menjunjung bahasa persatuan, bahasa Indonesia.",
-            proklamasi: "Kami bangsa Indonesia dengan ini menjatakan Kemerdekaan Indonesia. Hal-hal jang mengenai pemindahan kekoeasaan d.l.l., diselenggarakan dengan tjara saksama dan dalam tempo jang sesingkat-singkatnja. Djakarta, hari 17 boelan 8 tahoen 05."
-        };
-
-        window.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("gas-url-input").value = gasWebUrl;
-            applyTextPreset("pancasila");
-            
-            // Focus input hidden saat typing box diklik
-            document.getElementById("hidden-input").addEventListener("input", handleTypingInput);
-
-            // Audio Context initialization on click
-            document.addEventListener("click", initAudio, { once: true });
-
-            // Start polling GAS status room
-            startPollingRoomState();
-        });
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playSound(type) {
-            if (!audioCtx) return;
+        // Audio Effects Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playKeySound(isError = false) {
             try {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
+                osc.type = isError ? 'sawtooth' : 'sine';
+                osc.frequency.setValueAtTime(isError ? 180 : 500, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } catch(e){}
+        }
 
-                if (type === "click") {
-                    osc.type = "sine";
-                    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.05);
-                } else if (type === "error") {
-                    osc.type = "sawtooth";
-                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.15);
-                } else if (type === "victory") {
-                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-                    notes.forEach((freq, idx) => {
-                        const noteOsc = audioCtx.createOscillator();
-                        const noteGain = audioCtx.createGain();
-                        noteOsc.connect(noteGain);
-                        noteGain.connect(audioCtx.destination);
-                        noteOsc.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.1));
-                        noteGain.gain.setValueAtTime(0.1, audioCtx.currentTime + (idx * 0.1));
-                        noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx * 0.1) + 0.3);
-                        noteOsc.start(audioCtx.currentTime + (idx * 0.1));
-                        noteOsc.stop(audioCtx.currentTime + (idx * 0.1) + 0.3);
-                    });
-                }
-            } catch (e) {
-                console.log("Audio play error", e);
-            }
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            startPolling();
+        });
+
+        // Polling Data dari Google Apps Script
+        function startPolling() {
+            fetchRoomState();
+            pollingInterval = setInterval(fetchRoomState, 3000);
         }
 
         async function fetchRoomState() {
             try {
-                const res = await fetch(`${gasWebUrl}?action=getRoomState`);
-                if (!res.ok) throw new Error("Network error");
+                const res = await fetch(`${GAS_URL}?action=getRoomState`);
                 const data = await res.json();
                 
-                document.getElementById("status-dot").style.backgroundColor = "var(--accent-green)";
-                document.getElementById("status-text").innerText = "Terhubung";
+                if(data && data.status) {
+                    const prevStatus = roomState.status;
+                    roomState = data;
+                    targetText = data.text || targetText;
 
-                if (data) {
-                    contestState = data;
-                    handleStateUpdate(data);
+                    // Update UI Lobby jika siswa ada di lobby
+                    document.getElementById('lobbyDuration').innerText = `${data.duration} Detik`;
+
+                    // Jika status berubah dari waiting ke countdown & user berada di lobby
+                    if (prevStatus === 'waiting' && data.status === 'start' && currentUser && !isAdmin) {
+                        triggerStartForStudent();
+                    }
                 }
-            } catch (err) {
-                document.getElementById("status-dot").style.backgroundColor = "var(--accent-red)";
-                document.getElementById("status-text").innerText = "Offline / Reconnecting";
+            } catch(e) {
+                console.log("Polling error:", e);
             }
         }
 
-        function startPollingRoomState() {
-            fetchRoomState();
-            if (pollingInterval) clearInterval(pollingInterval);
-            pollingInterval = setInterval(fetchRoomState, 2000);
-        }
-
-        function handleStateUpdate(state) {
-            document.getElementById("lobby-status-label").innerText = 
-                state.status === "countdown" ? "🚀 Countdown Memulai Lomba..." :
-                state.status === "active" ? "⚡ Lomba Sedang Berlangsung!" : "Standby / Menunggu Broadcast";
-
-            // Deteksi aba-aba Countdown dari Admin
-            if (state.status === "countdown" && state.startTime && state.startTime !== lastHandledStartTime) {
-                lastHandledStartTime = state.startTime;
-                triggerSynchronizedCountdown(state);
-            }
-        }
-
-        function triggerSynchronizedCountdown(state) {
-            const overlay = document.getElementById("countdown-overlay");
-            const numEl = document.getElementById("countdown-val");
-            overlay.classList.add("active");
-
-            const updateCountdown = () => {
-                const now = Date.now();
-                const diffSec = Math.ceil((state.startTime - now) / 1000);
-
-                if (diffSec > 0) {
-                    numEl.innerText = diffSec;
-                    playSound("click");
-                    setTimeout(updateCountdown, 1000);
-                } else {
-                    numEl.innerText = "MULAI!";
-                    playSound("victory");
-                    setTimeout(() => {
-                        overlay.classList.remove("active");
-                        startTypingContest(state.text, parseInt(state.duration));
-                    }, 800);
-                }
-            };
-
-            updateCountdown();
-        }
-
+        // Navigation Switcher
         function showView(viewId) {
-            document.querySelectorAll(".view-section").forEach(el => el.classList.remove("active"));
-            document.getElementById(viewId).classList.add("active");
+            const views = ['viewRegister', 'viewLobby', 'viewCountdown', 'viewArena', 'viewResult', 'viewAdmin', 'viewLeaderboard'];
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
         }
 
-        function handleRegister(e) {
-            e.preventDefault();
-            participant.name = document.getElementById("student-name").value.trim();
-            participant.nis = document.getElementById("student-nis").value.trim();
-
-            if (!participant.name || !participant.nis) {
-                showToast("Mohon isi Nama Lengkap dan Kelas/NIS!");
-                return;
+        function goHome() {
+            if (currentUser) {
+                showView('viewLobby');
+            } else if (isAdmin) {
+                showView('viewAdmin');
+            } else {
+                showView('viewRegister');
             }
-
-            document.getElementById("lobby-player-name").innerText = participant.name;
-            showView("view-lobby");
-            showToast("Berhasil masuk ruang tunggu!");
         }
 
-        function resetToRegister() {
-            if (typingSession.timerInterval) clearInterval(typingSession.timerInterval);
-            typingSession.active = false;
-            showView("view-register");
+        // Student Registration
+        function registerStudent(e) {
+            e.preventDefault();
+            const name = document.getElementById('inputStudentName').value.trim();
+            const cls = document.getElementById('inputStudentClass').value.trim();
+
+            if (!name || !cls) return;
+
+            currentUser = { name, class: cls };
+            document.getElementById('lobbyStudentName').innerText = `${name} (${cls})`;
+            showView('viewLobby');
         }
 
-        function startTypingContest(text, duration) {
-            typingSession = {
-                active: true,
-                startTime: Date.now(),
-                timerInterval: null,
-                timeLeft: duration,
-                typedIndex: 0,
-                mistakes: 0,
-                totalTyped: 0,
-                textToType: text
-            };
+        // Admin Auth
+        function showAdminModal() {
+            document.getElementById('modalAdmin').classList.remove('hidden');
+            document.getElementById('modalAdmin').classList.add('flex');
+        }
 
-            showView("view-arena");
-            renderTypingBox();
+        function closeAdminModal() {
+            document.getElementById('modalAdmin').classList.add('hidden');
+            document.getElementById('modalAdmin').classList.remove('flex');
+        }
 
-            const inputEl = document.getElementById("hidden-input");
-            inputEl.value = "";
-            focusTypingInput();
+        function verifyAdminPin() {
+            const pin = document.getElementById('inputAdminPin').value;
+            if (pin === 'admin123') {
+                isAdmin = true;
+                closeAdminModal();
+                showView('viewAdmin');
+                fetchScores();
+            } else {
+                alert('PIN Admin Salah! (Default: admin123)');
+            }
+        }
 
-            // Setup Timer
-            document.getElementById("stat-time").innerText = duration + "s";
-            document.getElementById("time-progress").style.width = "100%";
+        function logoutAdmin() {
+            isAdmin = false;
+            goHome();
+        }
 
-            if (typingSession.timerInterval) clearInterval(typingSession.timerInterval);
-            typingSession.timerInterval = setInterval(() => {
-                typingSession.timeLeft--;
-                document.getElementById("stat-time").innerText = typingSession.timeLeft + "s";
-                
-                const pct = (typingSession.timeLeft / duration) * 100;
-                document.getElementById("time-progress").style.width = pct + "%";
+        // Save Admin Settings
+        async function saveAdminSettings() {
+            const duration = document.getElementById('adminDuration').value;
+            const text = document.getElementById('adminText').value.trim();
 
-                if (typingSession.timeLeft <= 0) {
-                    finishContest();
+            if (!text) return alert("Teks lomba tidak boleh kosong!");
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'setRoomState',
+                        status: 'waiting',
+                        duration: duration,
+                        text: text
+                    })
+                });
+                alert("Pengaturan soal berhasil disimpan!");
+            } catch(e) {
+                alert("Gagal menyimpan ke server.");
+            }
+        }
+
+        // Broadcast Start (Dari Admin)
+        async function broadcastStart() {
+            const duration = document.getElementById('adminDuration').value;
+            const text = document.getElementById('adminText').value.trim();
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'setRoomState',
+                        status: 'start',
+                        duration: duration,
+                        text: text,
+                        startTime: Date.now()
+                    })
+                });
+                alert("Sinyal lomba dimulai telah dikirim ke seluruh siswa!");
+                fetchScores();
+            } catch(e) {
+                alert("Gagal mengirim sinyal start.");
+            }
+        }
+
+        // Trigger Countdown & Arena untuk Siswa
+        function triggerStartForStudent() {
+            showView('viewCountdown');
+            let count = 3;
+            document.getElementById('countdownNumber').innerText = count;
+
+            const cntInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    document.getElementById('countdownNumber').innerText = count;
+                } else {
+                    clearInterval(cntInterval);
+                    startTypingArena();
                 }
             }, 1000);
         }
 
-        function focusTypingInput() {
-            if (typingSession.active) {
-                document.getElementById("hidden-input").focus();
-            }
-        }
+        // Start Typing Arena
+        function startTypingArena() {
+            showView('viewArena');
+            timeRemaining = parseInt(roomState.duration) || 60;
+            currentTextIndex = 0;
+            totalTypedChars = 0;
+            correctTypedChars = 0;
+            isTypingActive = true;
 
-        function renderTypingBox() {
-            const container = document.getElementById("typing-display");
-            const text = typingSession.textToType;
-            let html = "";
+            document.getElementById('timerDisplay').innerText = `${timeRemaining}s`;
+            document.getElementById('wpmDisplay').innerText = `0 WPM`;
+            document.getElementById('accuracyDisplay').innerText = `100%`;
 
-            for (let i = 0; i < text.length; i++) {
-                let charClass = "char-pending";
-                if (i < typingSession.typedIndex) {
-                    charClass = "char-correct";
-                } else if (i === typingSession.typedIndex) {
-                    charClass = "char-current";
-                }
-                
-                let charDisplay = text[i] === " " ? "&nbsp;" : text[i];
-                html += `<span class="${charClass}" id="char-${i}">${charDisplay}</span>`;
-            }
+            renderTextDisplay();
 
-            container.innerHTML = html;
-            document.getElementById("char-counter").innerText = `${typingSession.typedIndex} / ${text.length} Karakter`;
-        }
-
-        function handleTypingInput(e) {
-            if (!typingSession.active) return;
-
-            const inputVal = e.target.value;
-            const targetChar = typingSession.textToType[typingSession.typedIndex];
-            const typedChar = inputVal.slice(-1);
-
-            if (!typedChar) return; // Ignore backspace for simple forward flow
-
-            typingSession.totalTyped++;
-
-            if (typedChar === targetChar) {
-                playSound("click");
-                typingSession.typedIndex++;
-            } else {
-                playSound("error");
-                typingSession.mistakes++;
-                // Flash char wrong momentarily
-                const currEl = document.getElementById(`char-${typingSession.typedIndex}`);
-                if (currEl) {
-                    currEl.className = "char-wrong";
-                    setTimeout(() => {
-                        if (typingSession.active) currEl.className = "char-current";
-                    }, 200);
-                }
-            }
-
-            // Clear input box to avoid overflow
-            e.target.value = "";
-
-            // Calculate Stats
-            updateLiveStats();
-            renderTypingBox();
-
-            // Auto Finish if text complete
-            if (typingSession.typedIndex >= typingSession.textToType.length) {
-                finishContest();
-            }
-        }
-
-        function updateLiveStats() {
-            const elapsedMinutes = (Date.now() - typingSession.startTime) / 60000;
-            const wordsTyped = typingSession.typedIndex / 5; // Standard 5 chars = 1 word
-            const wpm = elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0;
+            const input = document.getElementById('typingInput');
+            input.value = '';
+            input.focus();
             
-            const accuracy = typingSession.totalTyped > 0 
-                ? Math.round(((typingSession.totalTyped - typingSession.mistakes) / typingSession.totalTyped) * 100) 
-                : 100;
+            // Listen Typing Event
+            input.oninput = handleTypingInput;
 
-            document.getElementById("stat-wpm").innerText = Math.max(0, wpm);
-            document.getElementById("stat-accuracy").innerText = Math.max(0, accuracy) + "%";
+            // Timer Countdown
+            clearInterval(timerInterval);
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                document.getElementById('timerDisplay').innerText = `${timeRemaining}s`;
+
+                if (timeRemaining <= 0) {
+                    finishTypingTest();
+                }
+            }, 1000);
         }
 
-        async function finishContest() {
-            if (!typingSession.active) return;
-            typingSession.active = false;
-            clearInterval(typingSession.timerInterval);
+        // Render Text Display Box
+        function renderTextDisplay() {
+            const container = document.getElementById('textContainer');
+            container.innerHTML = '';
 
-            const timeSpentSeconds = Math.round((Date.now() - typingSession.startTime) / 1000);
-            const elapsedMinutes = timeSpentSeconds / 60;
-            const wordsTyped = typingSession.typedIndex / 5;
-            const finalWpm = elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0;
-            const finalAcc = typingSession.totalTyped > 0 
-                ? Math.round(((typingSession.totalTyped - typingSession.mistakes) / typingSession.totalTyped) * 100) 
-                : 100;
-
-            // Render Results View
-            document.getElementById("res-wpm").innerText = Math.max(0, finalWpm);
-            document.getElementById("res-acc").innerText = Math.max(0, finalAcc) + "%";
-            document.getElementById("res-time").innerText = timeSpentSeconds + "s";
-
-            showView("view-results");
-            triggerConfetti();
-            playSound("victory");
-
-            // Send score to Google Sheets backend
-            const scorePayload = {
-                action: "addScore",
-                name: participant.name || "Peserta Anonim",
-                nis: participant.nis || "-",
-                wpm: Math.max(0, finalWpm),
-                accuracy: Math.max(0, finalAcc),
-                time: timeSpentSeconds
-            };
-
-            try {
-                showToast("Menyimpan skor ke Google Sheets...");
-                await fetch(gasWebUrl, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(scorePayload)
-                });
-                showToast("Skor berhasil tersimpan di Google Sheets!");
-            } catch (err) {
-                showToast("Gagal menyimpan skor secara online.");
+            for (let i = 0; i < targetText.length; i++) {
+                const span = document.createElement('span');
+                span.classList.add('char');
+                span.innerText = targetText[i];
+                if (i === currentTextIndex) span.classList.add('current');
+                container.appendChild(span);
             }
-
-            // Refresh Peringkat
-            setTimeout(fetchLeaderboardData, 1500);
         }
 
-        async function fetchLeaderboardData() {
-            const tbody = document.getElementById("leaderboard-body");
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Memuat data peringkat...</td></tr>`;
+        // Handle Typing Logic
+        function handleTypingInput(e) {
+            if (!isTypingActive) return;
 
-            try {
-                const res = await fetch(`${gasWebUrl}?action=getScores`);
-                const scores = await res.json();
+            const typedVal = e.target.value;
+            const chars = document.querySelectorAll('#textContainer .char');
 
-                if (!scores || scores.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Belum ada data skor lomba.</td></tr>`;
+            totalTypedChars++;
+
+            if (typedVal.length > 0) {
+                const lastCharTyped = typedVal[typedVal.length - 1];
+                const expectedChar = targetText[currentTextIndex];
+
+                if (lastCharTyped === expectedChar) {
+                    chars[currentTextIndex].className = 'char correct';
+                    correctTypedChars++;
+                    playKeySound(false);
+                } else {
+                    chars[currentTextIndex].className = 'char incorrect';
+                    playKeySound(true);
+                }
+
+                currentTextIndex++;
+
+                if (currentTextIndex < targetText.length) {
+                    chars[currentTextIndex].className = 'char current';
+                } else {
+                    // Selesai Mengetik Seluruh Teks
+                    finishTypingTest();
                     return;
                 }
+            }
 
-                // Urutkan berdasarkan WPM tertinggi, kemudian Akurasi
+            e.target.value = ''; // Clear for next char
+
+            // Live WPM & Accuracy Calculation
+            const elapsedMinutes = (Date.now() - startTime) / 60000;
+            const wordsTyped = correctTypedChars / 5;
+            const wpm = elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0;
+            const accuracy = totalTypedChars > 0 ? Math.round((correctTypedChars / totalTypedChars) * 100) : 100;
+
+            document.getElementById('wpmDisplay').innerText = `${wpm} WPM`;
+            document.getElementById('accuracyDisplay').innerText = `${accuracy}%`;
+        }
+
+        // Finish Test
+        async function finishTypingTest() {
+            isTypingActive = false;
+            clearInterval(timerInterval);
+
+            const elapsedSeconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+            const elapsedMinutes = elapsedSeconds / 60;
+            const wordsTyped = correctTypedChars / 5;
+            const finalWpm = Math.round(wordsTyped / elapsedMinutes);
+            const finalAcc = totalTypedChars > 0 ? Math.round((correctTypedChars / totalTypedChars) * 100) : 0;
+
+            document.getElementById('resWpm').innerText = finalWpm;
+            document.getElementById('resAcc').innerText = `${finalAcc}%`;
+            document.getElementById('resTime').innerText = `${elapsedSeconds}s`;
+
+            showView('viewResult');
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+            // Send Result to Google Sheets
+            if (currentUser) {
+                try {
+                    await fetch(GAS_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'addScore',
+                            name: currentUser.name,
+                            nis: currentUser.class,
+                            wpm: finalWpm,
+                            accuracy: finalAcc,
+                            time: elapsedSeconds
+                        })
+                    });
+                } catch(e) {
+                    console.log("Error saving score:", e);
+                }
+            }
+        }
+
+        // Fetch & Render Leaderboard
+        async function fetchScores() {
+            try {
+                const res = await fetch(`${GAS_URL}?action=getScores`);
+                const scores = await res.json();
+
+                // Sort: WPM Descending, Accuracy Descending
                 scores.sort((a, b) => b.wpm - a.wpm || b.accuracy - a.accuracy);
 
-                let html = "";
-                scores.forEach((item, index) => {
-                    const rank = index + 1;
-                    let rankClass = "rank-other";
-                    if (rank === 1) rankClass = "rank-1";
-                    else if (rank === 2) rankClass = "rank-2";
-                    else if (rank === 3) rankClass = "rank-3";
-
-                    html += `
-                        <tr>
-                            <td><span class="rank-badge ${rankClass}">${rank}</span></td>
-                            <td style="font-weight: 700; color: #fff;">${escapeHtml(item.name)}</td>
-                            <td style="color: var(--text-muted);">${escapeHtml(item.nis)}</td>
-                            <td style="font-weight: 800; color: var(--primary);">${item.wpm}</td>
-                            <td style="color: var(--accent-green); font-weight: 600;">${item.accuracy}%</td>
-                            <td style="color: var(--text-muted);">${item.time}s</td>
-                        </tr>
-                    `;
-                });
-
-                tbody.innerHTML = html;
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-red);">Gagal memuat papan peringkat.</td></tr>`;
+                renderAdminLeaderboard(scores);
+                renderPublicLeaderboard(scores);
+            } catch(e) {
+                console.log("Fetch score error:", e);
             }
         }
 
-        function exportToCSV() {
-            const table = document.querySelector(".leaderboard-table");
-            let csv = [];
-            const rows = table.querySelectorAll("tr");
-
-            for (let i = 0; i < rows.length; i++) {
-                let row = [], cols = rows[i].querySelectorAll("td, th");
-                for (let j = 0; j < cols.length; j++) {
-                    row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
-                }
-                csv.push(row.join(","));
-            }
-
-            const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
-            const downloadLink = document.createElement("a");
-            downloadLink.download = `Hasil_Lomba_Mengetik_${new Date().toISOString().slice(0,10)}.csv`;
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-        }
-
-        function openAdminModal() {
-            document.getElementById("admin-modal").classList.add("active");
-            document.getElementById("admin-auth-sec").style.display = "block";
-            document.getElementById("admin-panel-sec").style.display = "none";
-            document.getElementById("admin-pin").value = "";
-        }
-
-        function closeAdminModal() {
-            document.getElementById("admin-modal").classList.remove("active");
-        }
-
-        function verifyAdminPin() {
-            const pin = document.getElementById("admin-pin").value;
-            if (pin === "admin123") {
-                document.getElementById("admin-auth-sec").style.display = "none";
-                document.getElementById("admin-panel-sec").style.display = "block";
-                showToast("Verifikasi Admin Berhasil!");
-            } else {
-                showToast("PIN Admin Salah!");
-            }
-        }
-
-        function switchAdminTab(tabName) {
-            document.getElementById("tab-admin-control").style.display = tabName === 'control' ? 'block' : 'none';
-            document.getElementById("tab-admin-data").style.display = tabName === 'data' ? 'block' : 'none';
-            document.getElementById("tab-admin-config").style.display = tabName === 'config' ? 'block' : 'none';
-        }
-
-        function applyTextPreset(key) {
-            const area = document.getElementById("admin-contest-text");
-            if (TEXT_PRESETS[key]) {
-                area.value = TEXT_PRESETS[key];
-            }
-        }
-
-        async function broadcastStartContest() {
-            const text = document.getElementById("admin-contest-text").value.trim();
-            const duration = document.getElementById("admin-duration").value;
-
-            if (!text) {
-                showToast("Teks soal tidak boleh kosong!");
+        function renderAdminLeaderboard(scores) {
+            const tbody = document.getElementById('adminLeaderboardTable');
+            if(!scores || scores.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-slate-500">Belum ada hasil peserta.</td></tr>`;
                 return;
             }
 
-            const payload = {
-                action: "setRoomState",
-                status: "countdown",
-                text: text,
-                duration: duration,
-                startTime: Date.now() + 4000 // 4 detik dari sekarang untuk sinkronisasi
-            };
-
-            showToast("Mengirim sinyal MULAI LOMBA...");
-
-            try {
-                await fetch(gasWebUrl, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                showToast("🚀 Perintah MULAI LOMBA telah dibroadcast!");
-                closeAdminModal();
-            } catch (e) {
-                showToast("Gagal mengirim broadcast.");
-            }
+            tbody.innerHTML = scores.map((s, idx) => `
+                <tr class="hover:bg-slate-900/50 transition">
+                    <td class="p-2.5 font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">#${idx+1}</td>
+                    <td class="p-2.5 font-semibold text-white">${s.name}</td>
+                    <td class="p-2.5 text-slate-400">${s.nis}</td>
+                    <td class="p-2.5 text-center font-bold text-blue-400">${s.wpm}</td>
+                    <td class="p-2.5 text-center text-emerald-400">${s.accuracy}%</td>
+                    <td class="p-2.5 text-center text-slate-400">${s.time}s</td>
+                </tr>
+            `).join('');
         }
 
-        async function broadcastResetContest() {
-            const payload = {
-                action: "setRoomState",
-                status: "waiting",
-                startTime: 0
-            };
-
-            try {
-                await fetch(gasWebUrl, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                showToast("Status ruangan di-reset ke Ruang Tunggu.");
-                closeAdminModal();
-            } catch (e) {
-                showToast("Gagal reset ruangan.");
-            }
-        }
-
-        function saveGasUrlConfig() {
-            const url = document.getElementById("gas-url-input").value.trim();
-            if (url) {
-                gasWebUrl = url;
-                localStorage.setItem("CYBERTYPE_GAS_URL", url);
-                showToast("URL Endpoint Google Apps Script berhasil disimpan!");
-                fetchRoomState();
-            }
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById("toast-msg");
-            toast.innerText = msg;
-            toast.classList.add("show");
-            setTimeout(() => toast.classList.remove("show"), 3000);
-        }
-
-        function escapeHtml(str) {
-            return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-        }
-
-        function triggerConfetti() {
-            const canvas = document.getElementById("confetti-canvas");
-            const ctx = canvas.getContext("2d");
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            const particles = [];
-            const colors = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#ec4899"];
-
-            for (let i = 0; i < 80; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height - canvas.height,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: Math.random() * 4 + 2,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    size: Math.random() * 8 + 4
-                });
+        function renderPublicLeaderboard(scores) {
+            const tbody = document.getElementById('publicLeaderboardTable');
+            if(!scores || scores.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Belum ada hasil peserta.</td></tr>`;
+                return;
             }
 
-            let animId;
-            const render = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                particles.forEach((p) => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(p.x, p.y, p.size, p.size);
-                });
+            tbody.innerHTML = scores.map((s, idx) => `
+                <tr class="hover:bg-slate-900/50">
+                    <td class="p-3 font-bold ${idx === 0 ? 'text-amber-400 text-lg' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-600' : 'text-slate-500'}">
+                        ${idx === 0 ? '🥇 1' : idx === 1 ? '🥈 2' : idx === 2 ? '🥉 3' : `#${idx+1}`}
+                    </td>
+                    <td class="p-3 font-semibold text-white">${s.name}</td>
+                    <td class="p-3 text-slate-400 text-xs">${s.nis}</td>
+                    <td class="p-3 text-center font-bold text-blue-400 cyber-font">${s.wpm}</td>
+                    <td class="p-3 text-center font-bold text-emerald-400 cyber-font">${s.accuracy}%</td>
+                </tr>
+            `).join('');
+        }
 
-                if (particles.some(p => p.y < canvas.height)) {
-                    animId = requestAnimationFrame(render);
-                }
-            };
-            render();
-            setTimeout(() => cancelAnimationFrame(animId), 4000);
+        function loadLeaderboardView() {
+            showView('viewLeaderboard');
+            fetchScores();
         }
     </script>
 </body>
